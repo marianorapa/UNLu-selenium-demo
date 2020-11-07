@@ -3,7 +3,7 @@
 <suite name="Default Suite">
     <test name="selenium-demo">
         <classes>
-            <class name="Demo"/>
+            <class name="DemoSelenium"/>
         </classes>
     </test> <!-- selenium-ejercicios -->
 </suite> <!-- Default Suite -->
