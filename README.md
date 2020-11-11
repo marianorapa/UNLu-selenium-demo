@@ -93,11 +93,12 @@ Para poder probar una aplicación web mediante tests funcionales, nos interesa, 
 **Aclaración**: la interfaz WebDriver es la que abstrae el manejo del browser a través de, en este caso, ChromeDriver. Por lo tanto, será la que utilizaremos para poder navegar, obtener elementos, interactuar con ellos, etc. En todas las clases de tests tendremos el atributo ``WebDriver driver;`` que represente el manejador.
 
 #### Navegar a una URL
+Para acceder a una URL utilizamos el método
 ``
 driver.get("https://www.example.com");
 ``
 
-#### Localizar un elemento
+#### Obtener un elemento del DOM
 Podemos obtener el elemento directamente o mediante esperas dinámicas. Dado que hay demoras variables en la descarga de los elementos, puede que intentemos acceder a un componente que todavía no está disponible, lo cual arrojará una excepción haciendo que el test falle. 
 
 ```
@@ -127,3 +128,41 @@ WebElement element_present = new WebDriverWait(driver, TIMEOUT)
                     .presenceOfElementLocated(By.id("my-element"));
 ```
 Tenemos otras alternativas para la espera; por ejemplo, que el elemento sea clickeable mediante `ExpectedConditions.elementToBeClickable();`
+
+#### Interactuar con un elemento
+Una vez obtenido el elemento al que queremos acceder (mediante alguno de los métodos del paso previo) podemos comenzar a interactuar con él de las siguientes maneras.
+
+##### Clickear un elemento
+Hay dos maneras de generar un evento *click* sobre un WebElement. La primera es sencilla y la recomendada como primer acercamiento:
+```
+element_present.click();
+```
+(donde ``element_present`` es el WebElement de la sección previa o cualquier otro)
+
+Por otro lado, **en caso que se produzca una excepción diciendo que el elemento no es clickeable** vamos a utilizar la clase `Actions`.
+```
+Actions actions = new Actions(driver);
+actions.moveToElement(button).click().build().perform();
+```
+Si bien la sintaxis es un poco más engorrosa, el resultado es el mismo. 
+
+##### Escribir en un input
+Dado un WebElement que sea un ``<input>`` podemos enviar Strings:
+```
+element_input.sendKeys("stackoverflow how do I send strings in selenium");
+```
+Por otro lado, para borrarlo:
+```
+element_input.clear();
+```
+
+### Helper methods
+Algunos métodos útiles para ejecutar funcionalidades puntuales
+
+#### Scrollear en la página
+```
+    private void scroll(int amt){
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        js.executeScript("window.scrollBy(0,"+ amt +")");
+    }
+```
