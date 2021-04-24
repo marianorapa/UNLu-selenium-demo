@@ -2,15 +2,17 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.testng.Assert;
 import org.testng.annotations.*;
 import util.ElementLocator;
 import util.impl.ElementLocatorImpl;
 import util.impl.ThreadSleeperImpl;
 
-import java.util.List;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 
 
 public class DemoSelenium {
@@ -19,14 +21,17 @@ public class DemoSelenium {
 
     ElementLocator elementLocator;
 
-    public static final String DUCKDUCKGO_URL = "https://www.duckduckgo.com";
+    public static final String URL = "https://www.geeksforgeeks.org";
 
     public static final int FORCED_DELAY = 500;
+
+    private String username;
+    private String password;
 
     @BeforeClass
     public void setup() {
         // Setear el path del driver
-        System.setProperty("webdriver.chrome.driver","src/test/resources/chromedriver.exe");
+        System.setProperty("webdriver.chrome.driver","src/test/resources/chromedriver");
 
         // Instanciar y maximizar la ventana
         driver = new ChromeDriver();
@@ -34,55 +39,75 @@ public class DemoSelenium {
 
         // Instanciar helpers
         elementLocator = new ElementLocatorImpl(driver);
+
+        // Leer config
+        readConfigValues();
     }
 
+    private void readConfigValues() {
+        Properties props = new Properties();
+        String propFileName = "application.properties";
+
+        InputStream inputStream = getClass().getClassLoader().getResourceAsStream(propFileName);
+
+        try {
+            props.load(inputStream);
+            this.username = props.getProperty("username");
+            this.password = props.getProperty("password");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
     @Test(priority = 10)
-    public void busquedaEnAlgunEngine() throws InterruptedException {
+    public void login(){
+        driver.get(URL);
 
-        // Cargar la página
-        driver.get(DUCKDUCKGO_URL);
-        ThreadSleeperImpl.sleep(FORCED_DELAY);
-        // Ubicar el input de búsqueda y enviar mensaje "bicicleta"
-        WebElement inputBox = driver.findElement(By.id("search_form_input_homepage"));
-        // Si falla, utilizar webDriverWait
-//        WebElement inputBox = new WebDriverWait(driver, 10).until(ExpectedConditions.presenceOfElementLocated(By.id("search_form_input_homepage")));
+        WebElement signInBtn = new WebDriverWait(driver, 10)
+                .until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id=\"userProfileId\"]/a")));
 
-        inputBox.sendKeys("Bicicleta rodado 29 mercadolibre");
-        ThreadSleeperImpl.sleep(FORCED_DELAY);
+        signInBtn.click();
 
-        inputBox.sendKeys("\n");
+        WebElement loginInput = new WebDriverWait(driver, 10)
+                .until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[5]/div[3]/div/div[2]/div[1]/section[1]/form/div[2]/input")));
 
-        // Obtener todos los resultados
-        List<WebElement> elements = driver.findElements(By.className("result"));
-        ThreadSleeperImpl.sleep(FORCED_DELAY);
+        loginInput.sendKeys(this.username);
 
-        // Clickear el primero
-        elements.get(0).click();
+        WebElement pwdInput = new WebDriverWait(driver, 10)
+                .until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[5]/div[3]/div/div[2]/div[1]/section[1]/form/div[3]/input")));
 
-        // Esperar presence of element
-        WebElement result = new WebDriverWait(driver, 10).until(ExpectedConditions.presenceOfElementLocated(By.className("ui-search-item__title")));
-        ThreadSleeperImpl.sleep(FORCED_DELAY);
+        pwdInput.sendKeys(this.password);
 
-        // Utilizar Actions para clickear el elemento
-        Actions actions = new Actions(driver);
-        actions.moveToElement(result).click().build().perform();
+        WebElement actualSignInBtn = driver.findElement(By.xpath("//*[@id=\"Login\"]/button"));
+        actualSignInBtn.click();
+    }
 
-        // Obtener text area pregunta
-        WebElement questionBox = driver.findElement(By.xpath("//*[@id=\"questions\"]/form/div/label/div[1]/textarea"));
-        ThreadSleeperImpl.sleep(FORCED_DELAY);
+    @Test(priority = 20)
+    public void skipEncuestaSiAparece(){
+        try {
+            WebElement element = new WebDriverWait(driver, 10)
+                    .until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/div/div[2]/div[2]/div[2]/form/div[10]/button[2]")));
+            element.click();
+        }
+        catch (Exception e){
+            System.out.println("La encuesta no fue salteada.");
+        }
+    }
 
-        questionBox.sendKeys("Hola, hay stock?");
-        ThreadSleeperImpl.sleep(FORCED_DELAY);
+    @Test(priority = 30)
+    public void pantallaInicioPostLogin(){
+        WebElement homeLogo = new WebDriverWait(driver, 10)
+                .until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[1]/a[2]")));
 
-        // Obtener botón "preguntar"
-        WebElement btnPreguntar = driver.findElement(By.xpath("//*[@id=\"questions\"]/form/button"));
-        btnPreguntar.click();
+        Assert.assertTrue(homeLogo.isDisplayed());
     }
 
 
     @AfterClass
     public void tearDown(){
-        ThreadSleeperImpl.sleep(2000);
+        ThreadSleeperImpl.sleep(10000);
         driver.close();
     }
 
