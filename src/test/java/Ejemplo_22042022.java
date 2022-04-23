@@ -10,7 +10,6 @@ import util.impl.ElementLocatorImpl;
 import util.impl.ThreadSleeperImpl;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
@@ -38,7 +37,7 @@ public class Ejemplo_22042022 {
     }
 
     @Test
-    public void queryFinalsDates() {
+    public void testFinalExamCount() {
         driver.get(BASE_URL);
 
         // Find academic services button
@@ -46,10 +45,14 @@ public class Ejemplo_22042022 {
 
         academicServices.click();
 
+        ThreadSleeperImpl.sleep(1000);
+
         // Find general access section
         WebElement generalAccess = elementLocator.getElementBy(By.xpath("//*[@id=\"sec-a1-caja\"]/div[2]/p[3]/a"));
 
         generalAccess.click();
+
+        ThreadSleeperImpl.sleep(1000);
 
         // Locate final exams link through featured table
         WebElement featuredTable = elementLocator.getElementBy(By.xpath("//*[@id=\"table2\"]/tbody/tr[3]/td/div/table"));
@@ -57,18 +60,25 @@ public class Ejemplo_22042022 {
         List<WebElement> tableRows = featuredTable.findElement(By.tagName("tbody")).findElements(By.tagName("tr"));
 
         navigateToFinalExamsQuery(tableRows);
+        ThreadSleeperImpl.sleep(1000);
 
         // Input query
         WebElement inputAssignment = elementLocator.getElementBy(By.xpath("//*[@id=\"principal\"]/div/center/table/tbody/tr/td/table[1]/tbody/tr[2]/td/form/table/tbody/tr/td/table/tbody/tr[4]/td[2]/p/input"));
         inputAssignment.sendKeys("Programacion I");
 
+        ThreadSleeperImpl.sleep(1000);
+
         WebElement searchByAssignmentButton = elementLocator.getElementBy(By.xpath("//*[@id=\"principal\"]/div/center/table/tbody/tr/td/table[1]/tbody/tr[2]/td/form/table/tbody/tr/td/table/tbody/tr[4]/td[3]/p/input"));
         searchByAssignmentButton.click();
+
+        ThreadSleeperImpl.sleep(1000);
 
         // Find assignment selector
         WebElement selector = elementLocator.getElementBy(By.xpath("//*[@id=\"principal\"]/div/center/table/tbody/tr/td/form/center/table/tbody/tr/td/table/tbody/tr[4]/td[2]/select"));
 
         List<WebElement> options = selector.findElements(By.tagName("option"));
+
+        ThreadSleeperImpl.sleep(1000);
 
         // Match assignment with code 11074
         Optional<WebElement> assignment = options.stream().filter(option -> option.getText().contains("11074")).findFirst();
@@ -77,9 +87,11 @@ public class Ejemplo_22042022 {
         WebElement searchButton = elementLocator.getElementBy(By.xpath("//*[@id=\"principal\"]/div/center/table/tbody/tr/td/form/center/table/tbody/tr/td/table/tbody/tr[4]/td[3]/p/input"));
         searchButton.click();
 
+        ThreadSleeperImpl.sleep(1000);
+
         WebElement tableFinalDates = elementLocator.getElementBy(By.xpath("//*[@id=\"principal\"]/div/center/table/tbody/tr/td/table[2]"));
         List<WebElement> finalInstances = tableFinalDates.findElements(By.tagName("tr"));
-
+        ThreadSleeperImpl.sleep(1000);
         int examCount = 0;
 
         for (WebElement finalInstance : finalInstances) {
@@ -92,7 +104,9 @@ public class Ejemplo_22042022 {
             }
             catch (IndexOutOfBoundsException | DateTimeParseException ignored) {}
         }
+        ThreadSleeperImpl.sleep(1000);
 
+        // Esto
         Assert.assertEquals( examCount, 2);
 
         driver.close();
