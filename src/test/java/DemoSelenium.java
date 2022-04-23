@@ -10,6 +10,7 @@ import util.ElementLocator;
 import util.impl.ElementLocatorImpl;
 import util.impl.ThreadSleeperImpl;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -31,7 +32,7 @@ public class DemoSelenium {
     @BeforeClass
     public void setup() {
         // Setear el path del driver
-        System.setProperty("webdriver.chrome.driver","src/test/resources/chromedriver");
+        System.setProperty("webdriver.chrome.driver","src/test/resources/chromedriver.exe");
 
         // Instanciar y maximizar la ventana
         driver = new ChromeDriver();
@@ -46,17 +47,14 @@ public class DemoSelenium {
 
     private void readConfigValues() {
         Properties props = new Properties();
-        String propFileName = "application.properties";
+        String propFileName = "src/test/resources/application.properties";
 
-        InputStream inputStream = getClass().getClassLoader().getResourceAsStream(propFileName);
-
-        try {
+        try (InputStream inputStream = new FileInputStream(propFileName)) {
             props.load(inputStream);
             this.username = props.getProperty("username");
             this.password = props.getProperty("password");
-
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Error loading file: " + e.getMessage());
         }
     }
 
@@ -71,7 +69,9 @@ public class DemoSelenium {
         signInBtn.click();
 
         WebElement loginInput = new WebDriverWait(driver, 10)
-                .until(ExpectedConditions.presenceOfElementLocated(By.xpath("/html/body/div[5]/div[3]/div/div[2]/div[1]/section[1]/form/div[2]/input")));
+                .until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[@id=\"luser\"]")));
+
+        loginInput.click();
 
         loginInput.sendKeys(this.username);
 
@@ -110,5 +110,4 @@ public class DemoSelenium {
         ThreadSleeperImpl.sleep(10000);
         driver.close();
     }
-
 }
